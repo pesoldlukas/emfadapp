@@ -8,10 +8,18 @@ workflows:
 
     script:
       - checkout
-      - echo "Java-Version prüfen"
-      - java -version
-      - javac -version
-      - ./gradlew assembleRelease -Pandroid.enableJetifier=true -Pandroid.useAndroidX=true
+      - run:
+          name: Java-Version prüfen
+          command: |
+            echo "Java-Version prüfen"
+            java -version
+            javac -version
+      - run:
+          name: Gradle-Build ausführen
+          command: |
+            ./gradlew assembleRelease \
+              -Pandroid.enableJetifier=true \
+              -Pandroid.useAndroidX=true
 
     artifacts:
       - app/build/outputs/apk/release/*.apk
