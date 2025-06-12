@@ -5,24 +5,14 @@ workflows:
     instance_type: mac_mini_m2
     
     # Entfernt: flutter_sdk (da dies eine native Android-App ist)
-    
-    # Korrekte Trigger-Struktur (Codemagic erkennt automatisch)
-    # Entfernt: triggers (Codemagic erkennt Branch automatisch)
 
     script:
       - checkout
-      - name: Setup JDK
-        script: |
-          echo "Java-Version prüfen"
-          java -version
-          javac -version
-      - name: Gradle-Build ausführen
-        script: |
-          ./gradlew assembleRelease \
-            -Pandroid.enableJetifier=true \
-            -Pandroid.useAndroidX=true
-      # Entfernt: upload_app_store (erfordert Apple-Zertifikate, die nicht im Repository liegen)
+      - echo "Java-Version prüfen"
+      - java -version
+      - javac -version
+      - ./gradlew assembleRelease -Pandroid.enableJetifier=true -Pandroid.useAndroidX=true
 
     artifacts:
-      - app/build/outputs/apk/release/*.apk  # Nur String-Pfad für APK
-      - app/build/reports/  # Nur String-Pfad für Berichte
+      - app/build/outputs/apk/release/*.apk
+      - app/build/reports/
