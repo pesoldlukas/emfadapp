@@ -1,0 +1,33 @@
+workflows:
+  android-release:
+    name: EMFAD Android Release Build
+    max_build_duration: 180
+    instance_type: mac_mini_m2
+    environment:
+      flutter_sdk: "3.7.9"
+    triggers:
+      - event: push
+        branch: main
+      - event: tag
+        pattern: "v*"
+    script:
+      - checkout
+      - gradle:
+          task: assembleRelease
+          project_dir: ./app
+          options: "-Pandroid.enableJetifier=true -Pandroid.useAndroidX=true"
+      - upload_app_store:
+          api_key: $APPLE_API_KEY
+          api_issuer: $APPLE_API_ISSUER_ID
+          api_key_id: $APPLE_API_KEY_ID
+          app_identifier: "com.emfad.app"
+          force: true
+          skip_upload: false
+          team_id: $APPLE_TEAM_ID
+    artifacts:
+      - path: app/build/outputs/apk/release/*.apk
+        type: apk
+      - path: app/build/reports/
+        type: reports
+
+
