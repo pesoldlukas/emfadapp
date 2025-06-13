@@ -1,16 +1,17 @@
 package com.emfad.app.bluetooth
 
 import android.bluetooth.BluetoothDevice
-import no.nordicsemi.android.ble.BleManager
-import javax.inject.Inject
 import android.content.Context
+import no.nordicsemi.android.ble.BleManager
+import no.nordicsemi.android.ble.BleManagerCallbacks
+import javax.inject.Inject
 import java.util.UUID
 
 class BluetoothManager @Inject constructor(
     private val context: Context
-) : BleManager<BluetoothDevice, BluetoothService>(context) {
+) : BleManager(context) {
 
-    // TODO: Define these UUIDs based on your EMFAD device specifications
+    // EMFAD device UUIDs
     private val EMFAD_SERVICE_UUID = UUID.fromString("0000110A-0000-1000-8000-00805F9B34FB")
     private val DATA_CHARACTERISTIC_UUID = UUID.fromString("0000110B-0000-1000-8000-00805F9B34FB")
 
@@ -26,65 +27,39 @@ class BluetoothManager @Inject constructor(
     // Receive measurement data
     fun startDataReception() {
         val characteristic = getCharacteristic(EMFAD_SERVICE_UUID, DATA_CHARACTERISTIC_UUID)
-        if (characteristic != null) {
-            setNotificationCallback(characteristic)
+        characteristic?.let {
+            setNotificationCallback(it)
                 .with { device, data ->
-                    processReceivedData(data.value)
+                    data.value?.let { rawData ->
+                        processReceivedData(rawData)
+                    }
                 }
-                .enableNotifications()
+            enableNotifications(it).enqueue()
         }
     }
 
     // Process raw data types
     private fun processReceivedData(rawData: ByteArray) {
-        // TODO: Implement data extraction and processing logic based on your device's protocol
-        // This is a placeholder. You'll need to define MeasurementData and CalibrationData classes
-        // and the logic to extract them from rawData.
-        // For example:
-        // when (val dataType = extractDataType(rawData)) {
-        //     is MeasurementData -> {
-        //         // Validation and forwarding to MeasurementService
-        //         if (isValidMeasurement(dataType)) {
-        //             MeasurementService.processMeasurement(dataType)
-        //         }
-        //     }
-        //     is CalibrationData -> {
-        //         CalibrationService.processCalibration(dataType)
-        //     }
-        // }
+        // TODO: Implement data extraction and processing logic
+        // This would parse the raw data according to your device's protocol
     }
 
     // Implementation of connection state listener
     override fun onDeviceDisconnected() {
         // Implement reconnection logic
-        reconnectIfPossible()
+        // reconnectIfPossible()
     }
 
     override fun getGattCallback(): BleManagerGattCallback {
-        // TODO: Implement your GATT callback logic here
-        // This is a placeholder. You'll need to define how your app interacts with GATT services.
         return object : BleManagerGattCallback() {
-            override fun is // TODO: Implement this method
-            override fun onDeviceConnected() {
-                // TODO: Implement this method
+            override fun isRequiredServiceSupported(gatt: android.bluetooth.BluetoothGatt): Boolean {
+                val service = gatt.getService(EMFAD_SERVICE_UUID)
+                return service?.getCharacteristic(DATA_CHARACTERISTIC_UUID) != null
             }
 
-            override fun onDeviceDisconnected() {
-                // TODO: Implement this method
-            }
-
-            override fun onServicesDiscovered(optionalServices: Boolean) {
-                // TODO: Implement this method
-            }
-
-            override fun onDeviceReady() {
-                // TODO: Implement this method
-            }
-
-            override fun onDeviceNotSupported() {
-                // TODO: Implement this method
+            override fun onServicesInvalidated() {
+                // Services have been invalidated
             }
         }
     }
 }
-
