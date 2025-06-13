@@ -1,26 +1,62 @@
 workflows:
   android-release:
     name: EMFAD Android Release Build
-    max_build_duration: 120  # ✅ korrigierter Wert
+    max_build_duration: 120
     instance_type: mac_mini_m2
 
     environment:
       vars:
-        JAVA_HOME: /Library/Java/JavaVirtualMachines/zulu-11.jdk/Contents/Home
+        JAVA_HOME: /Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home
+      java: 17
 
     scripts:
-      - name: Java-Version prüfen
+      - name: Setup und Prüfungen
         script: |
-          echo "Java-Version prüfen"
+          echo "=== Environment Setup ==="
+          echo "Java Version:"
           java -version
-          javac -version
+          echo "Current Directory:"
+          pwd
+          echo "Directory Contents:"
+          ls -la
 
-      - name: Gradle-Build ausführen
+      - name: Gradle Wrapper Setup
         script: |
+          echo "=== Gradle Wrapper Setup ==="
+          # Prüfe ob gradlew existiert
+          if [ ! -f "./gradlew" ]; then
+            echo "gradlew nicht gefunden, erstelle Gradle Wrapper..."
+            # Installiere Gradle falls nicht vorhanden
+            if ! command -v gradle &> /dev/null; then
+              echo "Installiere Gradle..."
+              brew install gradle
+            fi
+            gradle wrapper --gradle-version 8.0
+          fi
+          
+          # Setze Ausführungsrechte
+          chmod +x ./gradlew
+          
+          # Verifikation
+          echo "Gradle Wrapper Files:"
+          ls -la gradlew*
+          ls -la gradle/wrapper/
+
+      - name: Gradle Clean
+        script: |
+          echo "=== Gradle Clean ==="
+          ./gradlew clean
+
+      - name: Gradle Build
+        script: |
+          echo "=== Gradle Build ==="
           ./gradlew assembleRelease \
             -Pandroid.enableJetifier=true \
-            -Pandroid.useAndroidX=true
+            -Pandroid.useAndroidX=true \
+            --stacktrace \
+            --info
 
     artifacts:
       - app/build/outputs/apk/release/*.apk
       - app/build/reports/
+      - build/reports/
