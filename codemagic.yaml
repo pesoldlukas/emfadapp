@@ -1,23 +1,25 @@
 workflows:
   android-release:
     name: EMFAD Android Release Build
-    max_build_duration: 180
+    max_build_duration: 120  # ✅ korrigierter Wert
     instance_type: mac_mini_m2
 
-    script:
-      - checkout
-      - run:
-          name: Java-Version prüfen
-          command: |
-            echo "Java-Version prüfen"
-            java -version
-            javac -version
-      - run:
-          name: Gradle-Build ausführen
-          command: |
-            ./gradlew assembleRelease \
-              -Pandroid.enableJetifier=true \
-              -Pandroid.useAndroidX=true
+    environment:
+      vars:
+        JAVA_HOME: /Library/Java/JavaVirtualMachines/zulu-11.jdk/Contents/Home
+
+    scripts:
+      - name: Java-Version prüfen
+        script: |
+          echo "Java-Version prüfen"
+          java -version
+          javac -version
+
+      - name: Gradle-Build ausführen
+        script: |
+          ./gradlew assembleRelease \
+            -Pandroid.enableJetifier=true \
+            -Pandroid.useAndroidX=true
 
     artifacts:
       - app/build/outputs/apk/release/*.apk
