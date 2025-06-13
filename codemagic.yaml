@@ -1,24 +1,26 @@
 workflows:
   android-release:
-    name: EHFAD Android Release Build
+    name: EMFAD Android Release Build
     max_build_duration: 180
     instance_type: mac_mini_m2
-    # Entfernt: flutter_sdk (da dies eine native Android-App ist)
-    script:
-      - checkout
-      
+
+    environment:
+      vars:
+        JAVA_HOME: /Library/Java/JavaVirtualMachines/zulu-11.jdk/Contents/Home
+
+    scripts:
       - name: Java-Version prüfen
-        script: 
-          - echo "Java-Version prüfen"
-          - java -version
-          - javac -version  # Korrigiert von 'javax'
-      
+        script: |
+          echo "Java-Version prüfen"
+          java -version
+          javac -version
+
       - name: Gradle-Build ausführen
-        script: 
-          - ./gradlew assembleRelease \
-              -Pandroid.enableJetifier=true \
-              -Pandroid.useAndroidX=true  # Korrigiert von 'usebndroidX'
+        script: |
+          ./gradlew assembleRelease \
+            -Pandroid.enableJetifier=true \
+            -Pandroid.useAndroidX=true
 
     artifacts:
-      - app/build/outputs/apk/release/*.apk  # Korrigiert von 'api'
+      - app/build/outputs/apk/release/*.apk
       - app/build/reports/
